@@ -20,8 +20,17 @@ export default function Dashboard() {
     <ProtectedRoute>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}</h1>
-          <p className="text-gray-500">Track your interview preparation progress.</p>
+          <h1 
+            className="text-2xl font-bold inline-block"
+            style={{
+              background: 'linear-gradient(to right, #f1f5f9, #c7d2fe, #e9d5ff)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            Welcome back, {user?.name}
+          </h1>
+          <p className="text-indigo-200/80 text-sm mt-1">Track your interview preparation progress.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

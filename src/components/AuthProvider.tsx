@@ -10,22 +10,34 @@ export type UserProfile = {
 
 type AuthContextType = {
   user: UserProfile | null;
+  isLoaded: boolean;
   login: (user: UserProfile) => void;
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextType>({ user: null, login: () => {}, logout: () => {} });
+// Default context — isLoaded starts false so protected routes can gate themselves
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoaded: false,
+  login: () => {},
+  logout: () => {},
+});
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('cs_preppro_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('cs_preppro_user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch {
+      // localStorage not available (e.g. SSR context)
+    } finally {
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
   }, []);
 
   const login = (userData: UserProfile) => {
@@ -38,16 +50,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('cs_preppro_user');
   };
 
-  if (!isLoaded) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-500 text-sm font-medium">Loading CS PrepPro Pro...</p>
-      </div>
-    </div>
+  // ✅ No longer blocking the entire tree — page.tsx renders immediately.
+  // Protected pages check isLoaded themselves via context.
+  return (
+    <AuthContext.Provider value={{ user, isLoaded, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
